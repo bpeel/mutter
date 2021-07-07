@@ -49,6 +49,7 @@
 #include "winsys/cogl-onscreen-xlib.h"
 #include "winsys/cogl-winsys-egl-x11-private.h"
 #include "winsys/cogl-winsys-egl-private.h"
+#include "driver/gl/cogl-pipeline-opengl-private.h"
 
 static const CoglWinsysEGLVtable _cogl_winsys_egl_vtable;
 
@@ -543,6 +544,16 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
 static void
 _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
 {
+  CoglTexture *tex = COGL_TEXTURE (tex_pixmap);
+  unsigned int gl_handle, gl_target;
+
+  if (!cogl_texture_get_gl_texture (tex, &gl_handle, &gl_target))
+    return;
+
+  _cogl_bind_gl_texture_transient (gl_target,
+                                   gl_handle);
+
+  tex->context->glTexParameteri (gl_target, GL_SYNC_STATUS, 1);
 }
 
 static CoglTexture *
