@@ -453,6 +453,22 @@ _cogl_winsys_egl_cleanup_context (CoglDisplay *display)
 
 #ifdef EGL_KHR_image_pixmap
 
+static void
+invalidate_unsynchronized_image_for_texture (CoglTexturePixmapX11 *tex_pixmap)
+{
+  CoglTexture *tex = COGL_TEXTURE (tex_pixmap);
+  CoglContext *ctx = tex->context;
+  CoglRendererEGL *egl_renderer = ctx->display->renderer->winsys;
+  CoglTexturePixmapEGL *egl_tex_pixmap = tex_pixmap->winsys;
+
+  if ((egl_renderer->private_features &
+       COGL_EGL_WINSYS_FEATURE_UNSYNCHRONIZED_IMAGE))
+    {
+      egl_renderer->pf_eglInvalidateUnsynchronizedImage (egl_renderer->edpy,
+                                                         egl_tex_pixmap->image);
+    }
+}
+
 static gboolean
 _cogl_winsys_texture_pixmap_x11_create (CoglTexturePixmapX11 *tex_pixmap)
 {
@@ -502,6 +518,10 @@ _cogl_winsys_texture_pixmap_x11_create (CoglTexturePixmapX11 *tex_pixmap)
 
   tex_pixmap->winsys = egl_tex_pixmap;
 
+  /* Mark the image as unsynchronized so that the GL driver will know
+   * that we are going to inform it when the pixmap is damaged. */
+  invalidate_unsynchronized_image_for_texture (tex_pixmap);
+
   return TRUE;
 }
 
@@ -543,6 +563,7 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
 static void
 _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
 {
+  invalidate_unsynchronized_image_for_texture (tex_pixmap);
 }
 
 static CoglTexture *

@@ -147,3 +147,11 @@ COGL_WINSYS_FEATURE_BEGIN (context_priority,
                            "context_priority\0",
                            COGL_EGL_WINSYS_FEATURE_CONTEXT_PRIORITY)
 COGL_WINSYS_FEATURE_END ()
+
+COGL_WINSYS_FEATURE_BEGIN (unsynchronized_image,
+                           "MESA\0",
+                           "unsynchronized_image\0",
+                           COGL_EGL_WINSYS_FEATURE_UNSYNCHRONIZED_IMAGE)
+COGL_WINSYS_FEATURE_FUNCTION (EGLBoolean, eglInvalidateUnsynchronizedImage,
+                              (EGLDisplay disp, EGLImage img))
+COGL_WINSYS_FEATURE_END ()
